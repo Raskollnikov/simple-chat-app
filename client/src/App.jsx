@@ -1,4 +1,9 @@
-import { useState } from "react";
+import {Navigate, Route, Routes} from 'react-router-dom';
+import SignUpPage from "./pages/SignUpPage";
+import LoginPage from "./pages/LoginPage";
+import { Toaster } from "react-hot-toast";
+import { useAuthStore } from "./store/authStore";
+import { useState,useEffect } from "react";
 import { io } from "socket.io-client";
 import Chat from "./Chat";
 
