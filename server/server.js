@@ -7,16 +7,20 @@ import dotenv from 'dotenv'
 import cookieParser from 'cookie-parser';
 import { connectDB } from './db/connectDb.js';
 import authRoutes from './routes/authRoutes.js';
+import friendRoutes from './routes/friendRoutes.js'
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser())
 dotenv.config();
 
 app.use('/api/auth', authRoutes);
-
+app.use('/api/friend',friendRoutes)
 
 const server = http.createServer(app);
 
