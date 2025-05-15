@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import ScrollToBottom from 'react-scroll-to-bottom'
 
-const Chat = ({socket,username,room }) => {
+const Chat = ({socket,username,room,goBack }) => {
   const [currentMessage,setCurrentMessage] = useState('')
   const [messageList,setMessageList] = useState([]);
   
@@ -74,6 +74,12 @@ const Chat = ({socket,username,room }) => {
       &#9658;
     </button>
   </div>
+        <button
+          onClick={goBack}
+          className="absolute top-6 left-6 text-blue-600 hover:text-blue-800 text-lg font-bold cursor-pointer"
+        >
+          ← Back
+        </button>
 </div>
 
   )
