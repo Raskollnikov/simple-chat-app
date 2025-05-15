@@ -77,3 +77,18 @@ export const getRequests = async (req, res) => {
     res.status(500).json({ message: "server error." });
   }
 };
+
+
+export const searchUsers = async (req, res) => {
+  const query = req.query.q;
+  try {
+    const users = await User.find({
+      name: { $regex: query, $options: 'i' },
+      _id: { $ne: req.userId }
+    }).select('name email');
+    res.json(users);
+  } catch (err) {
+    console.error("Search failed", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

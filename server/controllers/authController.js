@@ -12,7 +12,7 @@ console.log("Signup request received with:", { email, password, name });
             throw new Error("user must provide email password and name")
         }
         
-        const userAlreadyExists=await User.findOne({email}).select('-password')
+        const userAlreadyExists=await User.findOne({email})
 
         if(userAlreadyExists){
             return res.status(400).json({success:false,message:"user already exists"})
@@ -65,8 +65,9 @@ export const verify = async(req,res)=>{
 
 export const login = async(req,res) => {
     const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email }).select('-password');
+    
+        try {
+            const user = await User.findOne({ email })
 
         if (!user) {
             return res.status(400).json({ success: false, message: "user not found" });
