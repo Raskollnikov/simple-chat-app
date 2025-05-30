@@ -92,3 +92,29 @@ export const searchUsers = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const deleteFriend = async (req, res) => {
+  const userId = req.userId;
+  const friendId = req.params.friendId;
+
+  if (userId === friendId) {
+    return res.status(400).json({ message: "you cannot remove yourself." });
+  }
+
+  try {
+    const user = await User.findById(userId);
+    const friend = await User.findById(friendId);
+
+    if (!user || !friend) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    await User.findByIdAndUpdate(userId, { $pull: { friends: friendId } });
+    await User.findByIdAndUpdate(friendId, { $pull: { friends: userId } });
+
+    res.status(200).json({ message: "friend removed successfully." });
+  } catch (err) {
+    console.error("error removing friend:", err);
+    res.status(500).json({ message: "server error." });
+  }
+};

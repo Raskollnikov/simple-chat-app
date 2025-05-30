@@ -1,5 +1,5 @@
 import express from 'express';
-import { sendRequest, acceptRequest, getFriends,getRequests,searchUsers} from '../controllers/friendController.js';
+import { sendRequest, acceptRequest, getFriends,getRequests,searchUsers,deleteFriend} from '../controllers/friendController.js';
 import { protectedRoute } from '../middleware/protectedRoute.js';
 
 const router = express.Router();
@@ -10,4 +10,8 @@ router.get('/', protectedRoute, getFriends);
 router.get('/friend-requests',protectedRoute,getRequests)
 
 router.get('/search', protectedRoute, searchUsers);
+
+router.delete('/:friendId', protectedRoute, deleteFriend);
+
+
 export default router;
