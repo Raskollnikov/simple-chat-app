@@ -14,7 +14,7 @@ const Chat = ({socket,username,room,goBack }) => {
         time:new Date(Date.now()).getHours() +":"+new Date(Date.now()).getMinutes()
       }
 
-      await socket.emit('send_message',messageData)
+      await socket.emit('send_anonymous',messageData)
       setMessageList(list=>[...list,messageData])
       setCurrentMessage('')
     }
@@ -22,7 +22,7 @@ const Chat = ({socket,username,room,goBack }) => {
 
 
   useEffect(()=>{
-    socket.on('receive_message',(data)=>{
+    socket.on('receive_anonymous',(data)=>{
       setMessageList(list=>[...list,data])
     })
   },[socket])

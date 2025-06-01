@@ -2,12 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useFriendStore } from '../store/friendStore';
 import toast from 'react-hot-toast';
 import NotificationBell from '../components/NotificationBell';
+import { io } from 'socket.io-client';
+import useChatStore  from '../store/chatStore';
+import { useAuthStore } from '../store/authStore';
+import { RiDeleteBinLine } from "react-icons/ri";
 
 const Friends = () => {
     const [sentRequests, setSentRequests] = useState(() => {
       const stored = localStorage.getItem('sentRequests');
       return stored ? JSON.parse(stored) : [];
     });
+    const socket = io.connect("http://localhost:3000");
+    const {user} = useAuthStore();
+    const [activeFriendId, setActiveFriendId] = useState(null);
+  const {
+    setRoom,
+    setName,
+    setSenderId,
+    setMessageList,
+    setShowChat
+  } = useChatStore();
 
   const {
     fetchFriends,
@@ -32,6 +46,53 @@ const Friends = () => {
     await searchUsers(searchQuery);
   };
 
+  const startChatWithFriend = async (friendId) => {
+      if (activeFriendId === friendId) {
+      setActiveFriendId(null);
+      setShowChat(false);
+    return;
+  }
+  try {
+    const res = await fetch(`http://localhost:3000/api/chat/${friendId}`, {
+      method: 'GET',
+      credentials: 'include' 
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch chat");
+    const chat = await res.json();
+
+    socket.emit('join_room', chat._id);
+
+    const messagesRes = await fetch(`http://localhost:3000/api/chat/messages/${chat._id}`, {
+      method: 'GET',
+      credentials: 'include'
+    });
+
+    if (!messagesRes.ok) throw new Error("Failed to fetch messages");
+    const messages = await messagesRes.json();
+
+    setRoom(chat._id);
+    setName(user.name);
+    setSenderId(user._id); 
+
+    setMessageList(messages.map((msg) => ({
+      author: msg.sender.name,
+      senderId: msg.sender._id,
+      message: msg.content,
+      time: new Date(msg.createdAt).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    })));
+
+      setActiveFriendId(friendId);
+    setShowChat(true);
+  } catch (err) {
+    console.error("Failed to start chat", err);
+  }
+};
+
+
   const handleSendFriendRequest = async (toId) => {
   await sendFriendRequest(toId);
   toast.success("Friend request sent");
@@ -42,7 +103,7 @@ const Friends = () => {
   });
 }; 
   return (
-    <div className="w-64 h-full bg-gray-100 p-4 overflow-y-auto">
+    <div className="w-full h-full bg-gray-100 p-4 overflow-y-auto">
     <div className="absolute top-4 right-4 z-50">
         <NotificationBell />
     </div>
@@ -81,12 +142,15 @@ const Friends = () => {
         ) : alreadySent ? (
             <span className="text-gray-500 font-semibold text-sm ml-2 py-1">Sent</span>
         ) : (
-            <button
-            onClick={() => handleSendFriendRequest(user._id)}
+           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSendFriendRequest(user._id);
+            }}
             className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 cursor-pointer"
-            >
+          >
             Send
-            </button>
+          </button>
         )}
         </li>
     );
@@ -95,13 +159,16 @@ const Friends = () => {
 
       <ul className="mt-6 space-y-2">
         {friends.map((friend) => (
-          <li key={friend._id} className="p-2 bg-white rounded shadow flex justify-between">
+          <li title='message' key={friend._id} className="hover:bg-gray-100 transition-colors duration-200 px-3 py-4 bg-white rounded shadow flex justify-between cursor-pointer" onClick={() => startChatWithFriend(friend._id)}>
             {friend.name}
-             <button
-                onClick={() => handleRemoveFriend(friend._id)}
-                className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm cursor-pointer"
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemoveFriend(friend._id);
+              }}
+              className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600 text-sm cursor-pointer"
             >
-                Remove
+              <RiDeleteBinLine />
             </button>
           </li>
         ))}

@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react';
 import Chat from '../Chat';
-import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useFriendStore } from '../store/friendStore';
 import Friends from '../components/Friends';
-
-const socket = io.connect("http://localhost:3000");
+import useChatStore from '../store/chatStore';
+import ChatBox from '../components/ChatBox';
+import { FaCircleExclamation } from "react-icons/fa6";
+import { socket } from '../socket'; 
 
 const HomePage = () => {
   const [name, setName] = useState('');
   const [room, setRoom] = useState('');
-  const [showChat, setShowChat] = useState(false);
+  const [showAnonymousChat, setShowChat] = useState(false);
   const navigate = useNavigate();
 
   const { logout,user} = useAuthStore();
@@ -35,14 +36,16 @@ const HomePage = () => {
 };
   useEffect(() => {
     return () => {
-      if (!showChat) useFriendStore.getState().searchUsers(''); 
+      if (!showAnonymousChat) useFriendStore.getState().searchUsers(''); 
     };
-  }, [showChat]);
+  }, [showAnonymousChat]);
   const handleBack = () => {
     setShowChat(false);
   };
-
-  if (showChat) {
+  const {
+    showChat
+  } = useChatStore();
+  if (showAnonymousChat) {
     return (
       <Chat 
         goBack={handleBack} 
@@ -55,20 +58,27 @@ const HomePage = () => {
 
   return (
   <div className="h-screen w-full flex flex-row">
-    <Friends />
-    
-
-    <div className="flex-1 flex flex-col justify-center items-center px-4 py-6 overflow-y-auto">
-    
-      
+   <div className="w-1/5 border-r">
+      <Friends />
+    </div>
+    <div className='w-4/5'> 
+{showChat?
+      <ChatBox />
+      :
+     (   <div className="flex-1 flex flex-col justify-center items-center px-4 py-6 overflow-y-auto">   
       <div className="bg-white shadow-xl rounded-lg p-8 max-w-md mt-20">
-        <h3 className="text-2xl font-bold mb-6 text-center text-blue-600">
-          Join a Chat
-        </h3>
+      <h3 className="text-2xl font-bold mb-6 text-center text-blue-600 flex justify-between items-center">
+        Join anonymous chat 
+        <span className="relative flex items-center group">
+          <FaCircleExclamation className="text-blue-500 cursor-pointer ml-2" />
+          <span className="absolute -top-20 left-1/2 -translate-x-1/2 w-64 bg-gray-700 text-white text-xs rounded px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg">
+            you can name yourself anything and communicate with others only within the same room. No data is saved — it's completely anonymous!
+          </span>
+        </span>
+      </h3>
         <input
           type="text"
-          placeholder="Name"
-          value={user.name}
+          placeholder={user.name}
           onChange={(e) => setName(e.target.value)}
           className="w-full mb-4 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
@@ -97,6 +107,7 @@ const HomePage = () => {
           Logout
         </button>
       </div>
+    </div>)}  
     </div>
   </div>
 );

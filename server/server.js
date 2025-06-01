@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import { connectDB } from './db/connectDb.js';
 import authRoutes from './routes/authRoutes.js';
 import friendRoutes from './routes/friendRoutes.js'
+import chatRoutes from './routes/chatRoutes.js';
 
 const app = express();
 
@@ -21,12 +22,14 @@ dotenv.config();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/friend',friendRoutes)
+app.use('/api/chat', chatRoutes);
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
     origin: 'http://localhost:5173',
+    credentials: true
   },
 });
 
