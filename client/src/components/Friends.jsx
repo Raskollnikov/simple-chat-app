@@ -4,10 +4,12 @@ import toast from 'react-hot-toast';
 import NotificationBell from '../components/NotificationBell';
 
 const Friends = () => {
-    const [sentRequests, setSentRequests] = useState([]);
+    const [sentRequests, setSentRequests] = useState(() => {
+      const stored = localStorage.getItem('sentRequests');
+      return stored ? JSON.parse(stored) : [];
+    });
 
   const {
-
     fetchFriends,
     friends,
     searchResults,
@@ -24,6 +26,7 @@ const Friends = () => {
   useEffect(() => {
     fetchFriends();
   }, [fetchFriends]);
+  
 
   const handleSearch = async () => {
     await searchUsers(searchQuery);
@@ -32,8 +35,12 @@ const Friends = () => {
   const handleSendFriendRequest = async (toId) => {
   await sendFriendRequest(toId);
   toast.success("Friend request sent");
-  setSentRequests((prev) => [...prev, toId]);
-};  
+  setSentRequests(prev => {
+    const newSent = [...prev, toId];
+    localStorage.setItem('sentRequests', JSON.stringify(newSent));
+    return newSent;
+  });
+}; 
   return (
     <div className="w-64 h-full bg-gray-100 p-4 overflow-y-auto">
     <div className="absolute top-4 right-4 z-50">
@@ -76,7 +83,7 @@ const Friends = () => {
         ) : (
             <button
             onClick={() => handleSendFriendRequest(user._id)}
-            className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+            className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 cursor-pointer"
             >
             Send
             </button>

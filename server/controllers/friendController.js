@@ -55,6 +55,27 @@ export const acceptRequest = async (req, res) => {
   }
 };
 
+export const declineFriendRequest = async (req, res) => {
+  const toId = req.userId;
+  const fromId = req.params.fromId;
+
+  try {
+    const request = await FriendRequest.findOne({ from: fromId, to: toId });
+
+    if (!request) {
+      return res.status(404).json({ message: "friend request not found." });
+    }
+
+    // Delete the friend request without modifying any users' `friends` list
+    await FriendRequest.deleteOne({ _id: request._id });
+
+    res.status(200).json({ message: "friend request declined." });
+  } catch (err) {
+    console.error("error declining friend request:", err);
+    res.status(500).json({ message: "server error." });
+  }
+};
+
 export const getFriends = async (req, res) => {
   try {
     const user = await User.findById(req.userId).populate('friends', 'name email');

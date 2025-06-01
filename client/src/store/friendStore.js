@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 const FRIEND_API_URL = "http://localhost:3000/api/friend";
 
+
 axios.defaults.withCredentials = true;
 
 export const useFriendStore = create((set) => ({
@@ -37,8 +38,23 @@ export const useFriendStore = create((set) => ({
     }
   },
   acceptFriendRequest: async (fromId) => {
-  await axios.post(`${FRIEND_API_URL}/accept/${fromId}`, {}, { withCredentials: true });
-},
+    await axios.post(`${FRIEND_API_URL}/accept/${fromId}`, {}, { withCredentials: true });
+
+    set((state) => {
+      const acceptedUser = state.friendRequests.find(req => req.from._id === fromId)?.from;
+      return {
+        friendRequests: state.friendRequests.filter(req => req.from._id !== fromId),
+        friends: acceptedUser ? [...state.friends, acceptedUser] : state.friends
+      };
+    });
+  },
+  declineFriendRequest: async (fromId) => {
+  await axios.post(`${FRIEND_API_URL}/decline/${fromId}`, {}, { withCredentials: true });
+
+    set((state) => ({
+      friendRequests: state.friendRequests.filter(req => req.from._id !== fromId)
+    }));
+  },
 
   searchUsers: async (query) => {
     set({ isLoading: true, error: null });
@@ -80,4 +96,9 @@ export const useFriendStore = create((set) => ({
         });
     }
     },
+    reset: () => set({ 
+    friends: [], 
+    searchResults: [], 
+    friendRequests: [] 
+  })
 }));

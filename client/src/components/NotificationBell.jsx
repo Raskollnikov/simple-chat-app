@@ -8,18 +8,21 @@ const NotificationBell = () => {
     friendRequests,
     fetchFriendRequests,
     acceptFriendRequest,
+    declineFriendRequest,
+    fetchFriends
   } = useFriendStore();
 
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    fetchFriendRequests();
-  }, [fetchFriendRequests]);
+  fetchFriends();
+  fetchFriendRequests();
+}, [fetchFriends, fetchFriendRequests]);
 
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)} className="relative">
-        <FaBell className="text-2xl text-gray-800" />
+        <FaBell className="text-2xl text-gray-800 cursor-pointer" color={'white'} />
         {friendRequests.length > 0 && (
           <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
             {friendRequests.length}
@@ -41,17 +44,27 @@ const NotificationBell = () => {
                 <p className="text-xs text-gray-500">{req.from ? req.from.email : "No info"}</p>
                 </div>
                 {req.from && (
-                <div className="flex gap-1">
+                  <div className="flex gap-1 mx-[8px] mt-[10px]">
                     <button
-                    onClick={async () => {
+                      onClick={async () => {
                         await acceptFriendRequest(req.from._id);
                         toast.success("Friend request accepted");
-                    }}
-                    className="text-xs bg-green-500 text-white px-2 py-1 rounded"
+                      }}
+                      className="text-xs bg-green-500 text-white px-2 py-1 rounded cursor-pointer"
                     >
-                    Accept
+                      Accept
                     </button>
-                </div>
+
+                    <button
+                      onClick={async () => {
+                        await declineFriendRequest(req.from._id);
+                        toast.success("Friend request declined");
+                      }}
+                      className="text-xs bg-red-500 text-white px-2 py-1 rounded cursor-pointer"
+                    >
+                      Decline
+                    </button>
+                  </div>
                 )}
             </li>
             ))}

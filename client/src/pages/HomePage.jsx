@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Chat from '../Chat';
 import { io } from 'socket.io-client';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useFriendStore } from '../store/friendStore';
 import Friends from '../components/Friends';
 
 const socket = io.connect("http://localhost:3000");
@@ -14,7 +15,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   const { logout,user} = useAuthStore();
- 
+  
   const joinRoom = () => {
     if (name && room) {
       socket.emit('join_room', room);
@@ -23,14 +24,20 @@ const HomePage = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate('/login', { replace: true });
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
-  };
-
+  try {
+    await logout();
+    useFriendStore.getState().reset(); 
+    localStorage.removeItem('sentRequests');
+    navigate('/login', { replace: true });
+  } catch (err) {
+    console.error("Logout failed", err);
+  }
+};
+  useEffect(() => {
+    return () => {
+      if (!showChat) useFriendStore.getState().searchUsers(''); 
+    };
+  }, [showChat]);
   const handleBack = () => {
     setShowChat(false);
   };
